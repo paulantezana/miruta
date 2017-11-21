@@ -3,7 +3,7 @@ var router = express.Router();
 
 
 const { Client } = require('pg');
-const connectionString  = 'postgresql://transporte:transporte@localhost:5432/transporte';
+const connectionString  = 'postgresql://miruta:miruta@165.227.123.63:5432/miruta';
 
 
 /* GET bussines page. */
