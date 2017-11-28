@@ -1,0 +1,29 @@
+extends layout
+block content
+    h1 empresas
+    table
+        thead
+            tr
+                th id empresa
+                th nombre
+                th gerente
+                th propietario
+                th telefono
+                th direccion
+                th ciudad
+                th Tipo empresa
+                th Accion
+        tbody
+            each item in empresas
+                tr
+                    td= item.id_empresa
+                    td= item.nombre
+                    td= item.gerente
+                    td= item.propietario
+                    td= item.telefono
+                    td= item.direccion
+                    td= item.ciudad
+                    td= item.id_tipo_empresa
+                    td
+                        a(href="/desk/empresas/delete/" + item.id_empresa) eliminar
+                        a(href="/desk/empresas/editar/" + item.id_empresa) editar
