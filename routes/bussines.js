@@ -24,13 +24,14 @@ const connectionString  = 'postgresql://miruta:miruta@127.0.0.1/miruta';
 //     client.end()
 //   })
 // });
-const client = new Client({
-    connectionString: connectionString,
-});
+
 
 module.exports = router;
 module.exports = function (app) {
     let empresasAll = (req, res)=>{
+        const client = new Client({
+            connectionString: connectionString,
+        });
         client.connect();
         client.query('SELECT * FROM empresas', (err, result) => {
             if(!err){ res.json( result.rows );} else {res.json(err);}
@@ -38,6 +39,9 @@ module.exports = function (app) {
         })
     };
     let empresasDetail = (req, res)=>{
+      const client = new Client({
+          connectionString: connectionString,
+      });
       res.setHeader('Content-Type', 'application/json');
       let currentID = req.body.id || null;
       client.connect();
