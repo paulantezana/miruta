@@ -1,0 +1,1124 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.5.10
+-- Dumped by pg_dump version 9.5.10
+
+-- Started on 2017-12-08 03:10:04 UTC
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 1 (class 3079 OID 12361)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2226 (class 0 OID 0)
+-- Dependencies: 1
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 181 (class 1259 OID 16386)
+-- Name: usuarios; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE usuarios (
+    id_usuario smallint NOT NULL,
+    usuario character varying(128) NOT NULL,
+    clave character varying(128) NOT NULL,
+    nombre character varying(128) NOT NULL,
+    email character varying(128),
+    foto character varying(255),
+    rool character varying(64) NOT NULL
+);
+
+
+ALTER TABLE usuarios OWNER TO miruta;
+
+--
+-- TOC entry 201 (class 1255 OID 16392)
+-- Name: f_login(character varying, character varying); Type: FUNCTION; Schema: public; Owner: miruta
+--
+
+CREATE FUNCTION f_login(_usuario character varying, _clave character varying) RETURNS SETOF usuarios
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+    	RETURN QUERY SELECT id_usuario,usuario,clave,nombre,email,foto,rool FROM usuarios WHERE usuario = _usuario and clave = md5(_clave);
+        IF NOT FOUND THEN
+        	RAISE EXCEPTION 'El usuario o contraseña no coinciden';
+        END IF;
+    END;
+$$;
+
+
+ALTER FUNCTION public.f_login(_usuario character varying, _clave character varying) OWNER TO miruta;
+
+--
+-- TOC entry 202 (class 1255 OID 16393)
+-- Name: f_usuario_insert(character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: miruta
+--
+
+CREATE FUNCTION f_usuario_insert(_usuario character varying, _clave character varying, _nombre character varying, _email character varying, _foto character varying, _rool character varying) RETURNS character varying
+    LANGUAGE plpgsql
+    AS $$
+	BEGIN
+        INSERT INTO usuarios (usuario,clave,nombre,email,foto,rool) 
+        	VALUES (_usuario,md5(_clave),_nombre,_email,_foto,_rool);
+        RETURN 'insert';
+    END;
+$$;
+
+
+ALTER FUNCTION public.f_usuario_insert(_usuario character varying, _clave character varying, _nombre character varying, _email character varying, _foto character varying, _rool character varying) OWNER TO miruta;
+
+--
+-- TOC entry 203 (class 1255 OID 16394)
+-- Name: f_usuario_update(integer, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: miruta
+--
+
+CREATE FUNCTION f_usuario_update(_idusuario integer, _usuario character varying, _clave character varying, _nombre character varying, _email character varying, _foto character varying, _rool character varying) RETURNS character varying
+    LANGUAGE plpgsql
+    AS $$
+	BEGIN
+        UPDATE  usuarios SET usuario = _usuario, clave = md5(_clave),
+        	nombre = _nombre, email = _email, foto = _foto, rool = _rool
+            WHERE id_usuario = _idUsuario;
+        RETURN 'update';
+    END;
+$$;
+
+
+ALTER FUNCTION public.f_usuario_update(_idusuario integer, _usuario character varying, _clave character varying, _nombre character varying, _email character varying, _foto character varying, _rool character varying) OWNER TO miruta;
+
+--
+-- TOC entry 182 (class 1259 OID 16400)
+-- Name: choferes; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE choferes (
+    id_chofer smallint NOT NULL,
+    dni character varying(8) NOT NULL,
+    nombres character varying(64) NOT NULL,
+    apellidos character varying(64) NOT NULL,
+    telefono character varying(9) NOT NULL,
+    email character varying(32) NOT NULL,
+    direccion character varying(64) NOT NULL,
+    id_empresa integer,
+    id_licencia integer NOT NULL
+);
+
+
+ALTER TABLE choferes OWNER TO miruta;
+
+--
+-- TOC entry 183 (class 1259 OID 16403)
+-- Name: choferes_id_chofer_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE choferes_id_chofer_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE choferes_id_chofer_seq OWNER TO miruta;
+
+--
+-- TOC entry 2227 (class 0 OID 0)
+-- Dependencies: 183
+-- Name: choferes_id_chofer_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE choferes_id_chofer_seq OWNED BY choferes.id_chofer;
+
+
+--
+-- TOC entry 184 (class 1259 OID 16405)
+-- Name: empresas; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE empresas (
+    id_empresa smallint NOT NULL,
+    codigo character varying(32) NOT NULL,
+    nombre character varying(64) NOT NULL,
+    gerente character varying(64) NOT NULL,
+    propietario character varying(64) NOT NULL,
+    telefono character varying(16) NOT NULL,
+    direccion character varying(64) NOT NULL,
+    ciudad character varying(32) NOT NULL,
+    id_tipo_empresa integer NOT NULL
+);
+
+
+ALTER TABLE empresas OWNER TO miruta;
+
+--
+-- TOC entry 185 (class 1259 OID 16408)
+-- Name: empresas_id_empresa_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE empresas_id_empresa_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE empresas_id_empresa_seq OWNER TO miruta;
+
+--
+-- TOC entry 2228 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: empresas_id_empresa_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE empresas_id_empresa_seq OWNED BY empresas.id_empresa;
+
+
+--
+-- TOC entry 186 (class 1259 OID 16410)
+-- Name: flotas; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE flotas (
+    id_flota smallint NOT NULL,
+    id_chofer integer NOT NULL,
+    id_ruta integer NOT NULL,
+    ayudante character varying(64),
+    id_vehiculo integer NOT NULL
+);
+
+
+ALTER TABLE flotas OWNER TO miruta;
+
+--
+-- TOC entry 187 (class 1259 OID 16413)
+-- Name: flotas_id_flota_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE flotas_id_flota_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE flotas_id_flota_seq OWNER TO miruta;
+
+--
+-- TOC entry 2229 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: flotas_id_flota_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE flotas_id_flota_seq OWNED BY flotas.id_flota;
+
+
+--
+-- TOC entry 200 (class 1259 OID 16525)
+-- Name: licencias; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE licencias (
+    id_licencia smallint NOT NULL,
+    licencia character varying(128)
+);
+
+
+ALTER TABLE licencias OWNER TO miruta;
+
+--
+-- TOC entry 199 (class 1259 OID 16523)
+-- Name: licencias_id_licencia_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE licencias_id_licencia_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE licencias_id_licencia_seq OWNER TO miruta;
+
+--
+-- TOC entry 2230 (class 0 OID 0)
+-- Dependencies: 199
+-- Name: licencias_id_licencia_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE licencias_id_licencia_seq OWNED BY licencias.id_licencia;
+
+
+--
+-- TOC entry 188 (class 1259 OID 16415)
+-- Name: papeletas; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE papeletas (
+    id_papeleta smallint NOT NULL,
+    cantidad character varying(64) NOT NULL,
+    monto_pagar integer,
+    pagado bit(1),
+    id_chofer integer NOT NULL,
+    tipo character varying(64) NOT NULL
+);
+
+
+ALTER TABLE papeletas OWNER TO miruta;
+
+--
+-- TOC entry 189 (class 1259 OID 16418)
+-- Name: papeletas_id_papeleta_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE papeletas_id_papeleta_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE papeletas_id_papeleta_seq OWNER TO miruta;
+
+--
+-- TOC entry 2231 (class 0 OID 0)
+-- Dependencies: 189
+-- Name: papeletas_id_papeleta_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE papeletas_id_papeleta_seq OWNED BY papeletas.id_papeleta;
+
+
+--
+-- TOC entry 190 (class 1259 OID 16420)
+-- Name: rutas; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE rutas (
+    id_ruta smallint NOT NULL,
+    partida character varying(64) NOT NULL,
+    destino character varying(64) NOT NULL,
+    frecuencia integer,
+    distancia integer NOT NULL,
+    cruce_ruta character varying(8) NOT NULL,
+    cerrada bit(1) NOT NULL
+);
+
+
+ALTER TABLE rutas OWNER TO miruta;
+
+--
+-- TOC entry 191 (class 1259 OID 16423)
+-- Name: rutas_id_ruta_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE rutas_id_ruta_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE rutas_id_ruta_seq OWNER TO miruta;
+
+--
+-- TOC entry 2232 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: rutas_id_ruta_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE rutas_id_ruta_seq OWNED BY rutas.id_ruta;
+
+
+--
+-- TOC entry 192 (class 1259 OID 16425)
+-- Name: tipo_empresas; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE tipo_empresas (
+    id_tipo_empresa smallint NOT NULL,
+    tipo character varying(32) NOT NULL
+);
+
+
+ALTER TABLE tipo_empresas OWNER TO miruta;
+
+--
+-- TOC entry 193 (class 1259 OID 16428)
+-- Name: tipo_empresas_id_tipo_empresa_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE tipo_empresas_id_tipo_empresa_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE tipo_empresas_id_tipo_empresa_seq OWNER TO miruta;
+
+--
+-- TOC entry 2233 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: tipo_empresas_id_tipo_empresa_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE tipo_empresas_id_tipo_empresa_seq OWNED BY tipo_empresas.id_tipo_empresa;
+
+
+--
+-- TOC entry 194 (class 1259 OID 16430)
+-- Name: tipo_vehiculos; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE tipo_vehiculos (
+    id_tipo_vehiculo smallint NOT NULL,
+    tipo character varying(32) NOT NULL
+);
+
+
+ALTER TABLE tipo_vehiculos OWNER TO miruta;
+
+--
+-- TOC entry 195 (class 1259 OID 16433)
+-- Name: tipo_vehiculos_id_tipo_vehiculo_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE tipo_vehiculos_id_tipo_vehiculo_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE tipo_vehiculos_id_tipo_vehiculo_seq OWNER TO miruta;
+
+--
+-- TOC entry 2234 (class 0 OID 0)
+-- Dependencies: 195
+-- Name: tipo_vehiculos_id_tipo_vehiculo_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE tipo_vehiculos_id_tipo_vehiculo_seq OWNED BY tipo_vehiculos.id_tipo_vehiculo;
+
+
+--
+-- TOC entry 196 (class 1259 OID 16435)
+-- Name: usuarios_id_usuario_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE usuarios_id_usuario_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE usuarios_id_usuario_seq OWNER TO miruta;
+
+--
+-- TOC entry 2235 (class 0 OID 0)
+-- Dependencies: 196
+-- Name: usuarios_id_usuario_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE usuarios_id_usuario_seq OWNED BY usuarios.id_usuario;
+
+
+--
+-- TOC entry 197 (class 1259 OID 16437)
+-- Name: vehiculos; Type: TABLE; Schema: public; Owner: miruta
+--
+
+CREATE TABLE vehiculos (
+    id_vehiculo smallint NOT NULL,
+    placa character varying(32) NOT NULL,
+    fabricacion character varying(32),
+    clase character varying(64),
+    marca character varying(64),
+    modelo character varying(64),
+    combustible character varying(64),
+    carroceria character varying(64),
+    eje character varying(64),
+    color character varying(32),
+    ruedas integer,
+    n_motor integer,
+    cilindros integer,
+    n_serice_chasis character varying(32),
+    asientos integer,
+    peso_seco integer,
+    peso_bruto integer,
+    carga_uril integer,
+    longitud integer,
+    altura integer,
+    ancho integer,
+    propio bit(1) NOT NULL,
+    id_empresa integer NOT NULL,
+    id_tipo_vehiculo integer NOT NULL
+);
+
+
+ALTER TABLE vehiculos OWNER TO miruta;
+
+--
+-- TOC entry 198 (class 1259 OID 16443)
+-- Name: vehiculos_id_vehiculo_seq; Type: SEQUENCE; Schema: public; Owner: miruta
+--
+
+CREATE SEQUENCE vehiculos_id_vehiculo_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE vehiculos_id_vehiculo_seq OWNER TO miruta;
+
+--
+-- TOC entry 2236 (class 0 OID 0)
+-- Dependencies: 198
+-- Name: vehiculos_id_vehiculo_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: miruta
+--
+
+ALTER SEQUENCE vehiculos_id_vehiculo_seq OWNED BY vehiculos.id_vehiculo;
+
+
+--
+-- TOC entry 2045 (class 2604 OID 16446)
+-- Name: id_chofer; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY choferes ALTER COLUMN id_chofer SET DEFAULT nextval('choferes_id_chofer_seq'::regclass);
+
+
+--
+-- TOC entry 2046 (class 2604 OID 16447)
+-- Name: id_empresa; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY empresas ALTER COLUMN id_empresa SET DEFAULT nextval('empresas_id_empresa_seq'::regclass);
+
+
+--
+-- TOC entry 2047 (class 2604 OID 16448)
+-- Name: id_flota; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY flotas ALTER COLUMN id_flota SET DEFAULT nextval('flotas_id_flota_seq'::regclass);
+
+
+--
+-- TOC entry 2053 (class 2604 OID 16528)
+-- Name: id_licencia; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY licencias ALTER COLUMN id_licencia SET DEFAULT nextval('licencias_id_licencia_seq'::regclass);
+
+
+--
+-- TOC entry 2048 (class 2604 OID 16449)
+-- Name: id_papeleta; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY papeletas ALTER COLUMN id_papeleta SET DEFAULT nextval('papeletas_id_papeleta_seq'::regclass);
+
+
+--
+-- TOC entry 2049 (class 2604 OID 16450)
+-- Name: id_ruta; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY rutas ALTER COLUMN id_ruta SET DEFAULT nextval('rutas_id_ruta_seq'::regclass);
+
+
+--
+-- TOC entry 2050 (class 2604 OID 16451)
+-- Name: id_tipo_empresa; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY tipo_empresas ALTER COLUMN id_tipo_empresa SET DEFAULT nextval('tipo_empresas_id_tipo_empresa_seq'::regclass);
+
+
+--
+-- TOC entry 2051 (class 2604 OID 16452)
+-- Name: id_tipo_vehiculo; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY tipo_vehiculos ALTER COLUMN id_tipo_vehiculo SET DEFAULT nextval('tipo_vehiculos_id_tipo_vehiculo_seq'::regclass);
+
+
+--
+-- TOC entry 2044 (class 2604 OID 16453)
+-- Name: id_usuario; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY usuarios ALTER COLUMN id_usuario SET DEFAULT nextval('usuarios_id_usuario_seq'::regclass);
+
+
+--
+-- TOC entry 2052 (class 2604 OID 16454)
+-- Name: id_vehiculo; Type: DEFAULT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY vehiculos ALTER COLUMN id_vehiculo SET DEFAULT nextval('vehiculos_id_vehiculo_seq'::regclass);
+
+
+--
+-- TOC entry 2200 (class 0 OID 16400)
+-- Dependencies: 182
+-- Data for Name: choferes; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY choferes (id_chofer, dni, nombres, apellidos, telefono, email, direccion, id_empresa, id_licencia) FROM stdin;
+1	87958999	Angel Luis	Huillca	978868878	huillca.ji@hotmail.com	Jr. pumacahua	1	1
+3	74663556	Kevin 	Suarez	868887889	sicua18883@hotamail.com	AV. Sicuani	3	1
+4	75665757	Antonio lune	Valenzuela	856886989	valen2553@gmail.com	AV. Manuel Callo Zevallos	2	1
+5	75887576	Arturo	Florez	978867788	luna567@gmail.com	AV. arequipa	3	1
+11	88784789	Antoni 	Ninanqui Huaman	978886778	ninaqui@hotmail.com	Jr. Ugarte	2	2
+12	45565665	Roberto	Condori	978856664	Roberto8788@yahoo.com	AV. Anda Luz	6	3
+13	56667767	Luis miguel	Cansaya Quispe	968775775	coejito46@hotmail.com	Jr. 6 de julio	2	4
+14	97876886	Maria 	Fernandez	978856767	maria_fer@yahoo.es	AV. cecilia	3	2
+17	69099689	Jose luis	Quispe Puma	924345466	puma_yt84@gmail.com	AV. Arequipa 	5	1
+18	97886869	Fernanda	Mamani Quispe	978879987	fer_fuua@gmail.com	Jr. 6 de julio	5	5
+21	95776878	Ana	Florez 	856876886	floass_657@hotmail.com	Jr. Julio Ochoa	3	2
+23	96777688	Gerardo	Quispe	967777786	rove_to@gmail.com	Jr. Pumacahua	6	8
+24	96584257	Margarita	pacco	948536589	margarita@hotmail.com	barrio Independencia	6	8
+25	77854715	Ricardo	Florez 	944145878	homi78@gmail.com	san andres	2	3
+26	88475158	Richard	Lacuta Mamani	985412587	lacuta@gmail.com	san felipe	5	2
+27	77458549	Raul	Mamani Paucar	774854712	maman@hotmail.com	jr. pachacutec	6	8
+28	88541238	mariano	Cahuana Huaylla	984578125	marin@gmail.com	av. independencia	3	8
+29	85656657	Camilo	Rodriguez	947757786	art_huhh@gamil.com	Jr. Jose carlos mareategui	5	5
+30	95876888	Mirtha	Cconto	967775656	mir_45@hotmail.com	AV. centenario	1	3
+31	95878688	Jose Maria	aparicio 	964555788	apari.cio@gamail.com	Jr. jesus gaona	2	2
+32	85787858	Javier	Catunta	956776888	javi.chu@hotmail.com	AV. cesar alvarez	3	5
+33	95877858	Diana	Japattinta	956667768	dina.japa@hotamail.com	Jr eusebio delgado	6	8
+34	75996997	yori luz	Succari Gomez	956667788	suc_flo477@yahoo.com	AV. carrion 	6	7
+35	24747759	Ignacio	de los rios 	946655664	tulokito_6376@yahoo.com	Jr. Apaurimac	6	6
+36	24663889	Paulino	Castro	943525567	pau_cas@gamil.com	Jr. Santa Ana	5	4
+37	47785888	Domingo	Ttito	958775889	Ttititous_hinniues@yahoo.es	Jr. Dos de Mayo	7	4
+38	52666366	Paul	cusipata	929909871	paul_niko@gmail.com	Jr. panamericana	1	8
+39	26664777	Rigoberto	Ugarte	966578757	RIgo_4664@hotmail.com	AV. tupac Amaru	2	1
+40	83777378	Ronaldo 	Mamani 	957758869	ranal_dinio@hotmail.com	Jr. Revolucion	2	8
+43	25726636	Ricardo	Tthupa	929884775	Riacado_2656@hotmail.com	AV. sicuani	7	7
+60	83777378	Ronaldo 	Mamani 	916364785	ranal_dinio@hotmail.com	Jr. Revolucion	5	2
+\.
+
+
+--
+-- TOC entry 2237 (class 0 OID 0)
+-- Dependencies: 183
+-- Name: choferes_id_chofer_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('choferes_id_chofer_seq', 65, true);
+
+
+--
+-- TOC entry 2202 (class 0 OID 16405)
+-- Dependencies: 184
+-- Data for Name: empresas; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY empresas (id_empresa, codigo, nombre, gerente, propietario, telefono, direccion, ciudad, id_tipo_empresa) FROM stdin;
+1	001	Sr. del huerto	Oshin	José	854125621	Trapiche	sicuani	2
+7	006	Canchino	Arturito	Domingo Pari	899479989	Alonso Totorani	sicuani	2
+2	002	Virgen de Belen	Josue george	Carolina	966747888	Barrio Anda Luz	sicuani	2
+3	003	Virgen Inmaculada	Mary	Jhon salch	926738887	Los Olivos	sicuani	2
+5	004	Correcaminos	Roberto Alberto	Gregorio	957778888	Los Olivos	sicuani	2
+6	005	PJW	Maribel	Anna Juanna	956777588	Caminos del Inca	sicuani	2
+\.
+
+
+--
+-- TOC entry 2238 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: empresas_id_empresa_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('empresas_id_empresa_seq', 70, true);
+
+
+--
+-- TOC entry 2204 (class 0 OID 16410)
+-- Dependencies: 186
+-- Data for Name: flotas; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY flotas (id_flota, id_chofer, id_ruta, ayudante, id_vehiculo) FROM stdin;
+1	1	1	TAKESHI	1
+2	3	5	Ronaldo	42
+4	5	5	Rolan	43
+5	11	2	Antoni	4
+3	4	2	Antonio	25
+6	13	2	Alberto	3
+7	14	5	sonia	40
+8	17	6	PAULLINA	33
+9	18	6	Julian	31
+10	21	5	Maria	37
+11	23	3	Shakira	30
+12	25	3	Jose Maria	32
+13	26	4	Timoteo	2
+15	27	6	Anana	46
+16	28	3	Nicol	30
+17	29	5	kevin	39
+18	30	6	Victor	43
+19	32	4	Marin	2
+20	33	5	nicky	37
+21	35	3	miguel	32
+22	36	3	Luis MIgel	33
+23	37	3	Ricardo	36
+24	39	6	Coyote	30
+25	40	2	Juilian	49
+26	43	4	juanito	4
+27	60	2	Juanna	51
+\.
+
+
+--
+-- TOC entry 2239 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: flotas_id_flota_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('flotas_id_flota_seq', 27, true);
+
+
+--
+-- TOC entry 2218 (class 0 OID 16525)
+-- Dependencies: 200
+-- Data for Name: licencias; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY licencias (id_licencia, licencia) FROM stdin;
+2	A-III
+1	A-II
+3	A-IIIC
+4	A-IIB
+6	B-III
+5	B-II
+7	C-II
+8	C-III
+\.
+
+
+--
+-- TOC entry 2240 (class 0 OID 0)
+-- Dependencies: 199
+-- Name: licencias_id_licencia_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('licencias_id_licencia_seq', 9, true);
+
+
+--
+-- TOC entry 2206 (class 0 OID 16415)
+-- Dependencies: 188
+-- Data for Name: papeletas; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY papeletas (id_papeleta, cantidad, monto_pagar, pagado, id_chofer, tipo) FROM stdin;
+1	100	500	0	1	LEVE
+2	68	1500	0	3	LEVE
+3	45	3000	0	5	LEVE
+4	2001	50000	0	13	GRAVE
+5	200	300	0	1	MUY LEVE
+10	10	479	0	11	LEVE
+11	45	5668	1	30	LEVES
+12	19	738	0	21	LEVE
+13	1	8200	1	24	MUY GRAVE
+14	5	7166	0	26	LEVE
+16	8	8299	0	3	GRAVE
+17	68	1500	0	3	LEVE
+18	45	3000	0	5	LEVE
+19	2001	50000	0	13	GRAVE
+20	200	300	0	1	MUY LEVE
+25	10	479	0	11	LEVE
+26	45	5668	1	30	LEVES
+27	19	738	0	21	LEVE
+28	1	8200	1	24	MUY GRAVE
+29	5	7166	0	26	LEVE
+31	8	8299	0	3	GRAVE
+\.
+
+
+--
+-- TOC entry 2241 (class 0 OID 0)
+-- Dependencies: 189
+-- Name: papeletas_id_papeleta_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('papeletas_id_papeleta_seq', 31, true);
+
+
+--
+-- TOC entry 2208 (class 0 OID 16420)
+-- Dependencies: 190
+-- Data for Name: rutas; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY rutas (id_ruta, partida, destino, frecuencia, distancia, cruce_ruta, cerrada) FROM stdin;
+2	Jr. Alonso Toledo	Anexo Totorani	10	35	0	0
+1	C.C Chihuaco	Trapiche	3	35	1	0
+3	Calle Caminos del Inca	Centro Poblado Sillota	5	35	1	0
+4	Barrio anda Luz	Trapiche	3	35	0	1
+5	Jr. Los olivos                               	macurrumi	3	35	1	1
+6	Jr. los Olivos	macurruni	3	35	1	0
+\.
+
+
+--
+-- TOC entry 2242 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: rutas_id_ruta_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('rutas_id_ruta_seq', 10, true);
+
+
+--
+-- TOC entry 2210 (class 0 OID 16425)
+-- Dependencies: 192
+-- Data for Name: tipo_empresas; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY tipo_empresas (id_tipo_empresa, tipo) FROM stdin;
+1	asociacion
+2	privada
+\.
+
+
+--
+-- TOC entry 2243 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: tipo_empresas_id_tipo_empresa_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('tipo_empresas_id_tipo_empresa_seq', 2, true);
+
+
+--
+-- TOC entry 2212 (class 0 OID 16430)
+-- Dependencies: 194
+-- Data for Name: tipo_vehiculos; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY tipo_vehiculos (id_tipo_vehiculo, tipo) FROM stdin;
+4	MotoCarga
+1	Combis
+2	MotoTaxis
+3	MotoLineal
+\.
+
+
+--
+-- TOC entry 2244 (class 0 OID 0)
+-- Dependencies: 195
+-- Name: tipo_vehiculos_id_tipo_vehiculo_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('tipo_vehiculos_id_tipo_vehiculo_seq', 4, true);
+
+
+--
+-- TOC entry 2199 (class 0 OID 16386)
+-- Dependencies: 181
+-- Data for Name: usuarios; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY usuarios (id_usuario, usuario, clave, nombre, email, foto, rool) FROM stdin;
+1	paul	202cb962ac59075b964b07152d234b70	paul antezana	yoel.antezana@gmail.com		ADMIN
+2	admin	21232f297a57a5a743894a0e4a801fc3	usuario administrador	admin@gmail.com		ADMIN
+\.
+
+
+--
+-- TOC entry 2245 (class 0 OID 0)
+-- Dependencies: 196
+-- Name: usuarios_id_usuario_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('usuarios_id_usuario_seq', 2, true);
+
+
+--
+-- TOC entry 2215 (class 0 OID 16437)
+-- Dependencies: 197
+-- Data for Name: vehiculos; Type: TABLE DATA; Schema: public; Owner: miruta
+--
+
+COPY vehiculos (id_vehiculo, placa, fabricacion, clase, marca, modelo, combustible, carroceria, eje, color, ruedas, n_motor, cilindros, n_serice_chasis, asientos, peso_seco, peso_bruto, carga_uril, longitud, altura, ancho, propio, id_empresa, id_tipo_vehiculo) FROM stdin;
+1	M1-936	1998	A	TOYOTA	au474	gasolina	1	2	blanco Rayas Azul	4	1	4	1AS626	14	9	10	7500	8	3500	3000	1	2	1
+2	M1-363	2000	A	TOYOTA	AA227H	GASOLINA	1	2	BLANCO RAYAS AZUL	4	1	4	GG656H	14	9	10	7600	8	3500	3000	1	2	1
+3	M1-FH88	2001	A	SUZUKI	ZSHH7	GASOLINA	1	2	BLANCO RAYAS AZULES	4	1	4	HA772G	15	9	10	7500	8	3500	3000	1	2	1
+4	M1-HH74	2000	A	SUZUKI	AG22GG2	GASOLINA	1	2	BLANCO RAYAS AZULES	4	1	4	YA6BH	14	9	10	7500	8	3500	3000	1	2	1
+25	M1-764	2000	A	YHUNDAI	63GG7	GASOLINA	1	2	BLANCO RAYAS AZULES	4	1	4	HS877J	14	9	10	7500	8	3500	3000	1	2	1
+26	M1-787	2002	A	YHUNDAI	577GG	GASOLINA	1	2	BLANCO RAYAS NARANJAS	4	1	4	BH55YY7	14	9	10	7500	8	3500	3000	1	1	1
+27	M1-7847	1998	A	ISUZU	AHH46	GASOLINA	1	2	BLANCO RAYAS NARANJAS	4	1	4	16GV7	14	9	10	7500	8	3500	3000	1	1	1
+28	M1-6789	1990	A	TOYOTA	BHG66	GASOLINA	1	2	BLANCO RAYAS NARANJAS	4	1	4	125TF6	14	9	10	7500	8	3500	3000	1	2	1
+29	M1-77	1992	A	SUZUKI	MK88H	GASOLINA	1	2	BLANCO RAYAS NARANJAS	4	1	4	NA83H	14	9	10	7500	8	3500	3000	1	2	1
+30	M1-390	2004	A	YHUNDAI	B7HD7	GASOLINA	1	2	BLANCO CON MORADO	4	1	4	BHUJU7	14	9	10	7500	8	3500	3000	1	6	1
+31	M1-8D8	2001	A	SUZUKI	NS77D	GASOLINA	1	2	BLANCO MORADO	4	1	4	288U8	14	9	10	7500	8	3500	3000	1	6	1
+32	M1-988	1997	A	YHUNDAI	H77D7	GASOLINA	1	2	BLANCO CON MORADO	4	1	4	HA7798	14	9	10	7500	8	3500	3000	1	6	1
+33	M1-776	2003	A	TOYOTA	H67FF	GASOLINA	1	2	BLANCO CON MORADO	4	1	4	JJAS88	14	9	10	7500	8	3500	3000	1	6	1
+34	M1-958	1995	A.	TOYOTA	HS778D	GASOLINA	1	2	BLANCO RAYAS AZULES	4	1	4	A6D6D7	14	9	10	7500	8	3500	3000	1	2	1
+35	M1-958	2005	A	ACURI	ASDB77	GASOLINA	1	2	BLANCO	4	1	4	1HDJJ3	14	9	10	7500	8	3500	3000	1	3	1
+36	M1-736	1993	A	YHUNDAI	N88H44	GASOLINA	1	2	BLANCO	4	1	4	GR4555	15	9	10	7500	8	3500	3000	1	3	1
+37	M1-234	1995	A	TOYOTA	G5778	GASOLINA	1	2	BLANCO	4	1	4	75H58J	14	9	10	7500	8	3500	3000	1	3	1
+38	M1-104	1990	A	ISUZI	3HFU8	GASOLINA	1	2	BLANCO	4	1	4	JS777	14	9	10	7450	8	3500	3000	1	3	1
+39	M1-768	1995	A	ISUZU	8D7H7	GASOLINA	1	2	BLANCO	4	1	4	38HJK	14	8	9	7501	8	3500	3000	1	3	1
+40	M1-957	2001	A	ISUZU	\N	GASOLINA	1	2	BLANCO	4	1	4	KJS889	14	9	10	7500	8	3500	3000	1	3	1
+41	M1-3466	1998	A	YHUNDAI	77DUU8G	GASOLINA	1	2	BLANCO	4	1	4	HUI88	14	9	10	7500	8	3500	3000	1	3	1
+42	M1-001	2006	A	SUZUKI	7GU88	GASOLINA	1	2	BLANCO	4	1	4	NSMI8	14	9	10	7500	8	3500	3000	1	5	1
+43	M1-849	1997	A	YHUNDAI	878D88	GASOLINA	1	2	BLANCO	4	1	4	6G3GG	14	9	10	7500	8	3500	3000	1	5	1
+44	M1-135	2008	A	ISUZU	7H8HF	GASOLINA	1	2	BLANCO	4	1	4	DEGGS7	14	9	10	7500	8	3500	3000	1	5	1
+45	M1-277	1999	A	TOYOTA	H7DNN8	GASOLINA	1	2	BLANCO 	4	1	4	8SHAD	14	9	10	7500	8	3500	3000	1	5	1
+46	M2-869	1993	A	ISUZU	UFG88	GASOLINA	1	2	BLANCO	4	1	4	NNF779	14	9	10	7500	8	3500	3000	1	5	1
+47	M1-8987Y	2010	A	TOYOTA	GG778	GASOLINA	1	2	BLANCO Y VERDE	6	2	4	GG778	14	9	10	7500	8	3500	3000	1	7	1
+48	M1-T778	1998	A	ISUZU	HY8879	GASOLINA	1	2	BLAN CO Y VERDE	4	1	4	HJ78J	14	9	10	7500	8	3500	3000	1	7	1
+49	M1-6555	1990	A	YHUNDAI	DRA445	GASOLINA	1	2	BLANCO Y VERDE	4	1	4	67UHK	14	9	10	7500	8	3500	3000	1	7	1
+50	M1-000	1977	A	TOYOTAS	6662J9	PETROLEO	1	2	BLANCO Y VERDE	4	1	4	FR5567	7	12	13	5000	8	3800	3200	1	7	1
+51	M1M-7GGHF	1999	A	SUZUKI	8SDHH	GASOLINA	1	2	BLANCO Y VERDE	4	1	4	7DH889	14	9	10	7500	8	3500	3000	1	7	1
+\.
+
+
+--
+-- TOC entry 2246 (class 0 OID 0)
+-- Dependencies: 198
+-- Name: vehiculos_id_vehiculo_seq; Type: SEQUENCE SET; Schema: public; Owner: miruta
+--
+
+SELECT pg_catalog.setval('vehiculos_id_vehiculo_seq', 51, true);
+
+
+--
+-- TOC entry 2057 (class 2606 OID 16458)
+-- Name: pk_choferes; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY choferes
+    ADD CONSTRAINT pk_choferes PRIMARY KEY (id_chofer);
+
+
+--
+-- TOC entry 2061 (class 2606 OID 16460)
+-- Name: pk_empresas; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY empresas
+    ADD CONSTRAINT pk_empresas PRIMARY KEY (id_empresa);
+
+
+--
+-- TOC entry 2063 (class 2606 OID 16462)
+-- Name: pk_flotas; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY flotas
+    ADD CONSTRAINT pk_flotas PRIMARY KEY (id_flota);
+
+
+--
+-- TOC entry 2075 (class 2606 OID 16530)
+-- Name: pk_licencias; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY licencias
+    ADD CONSTRAINT pk_licencias PRIMARY KEY (id_licencia);
+
+
+--
+-- TOC entry 2065 (class 2606 OID 16464)
+-- Name: pk_papeletas; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY papeletas
+    ADD CONSTRAINT pk_papeletas PRIMARY KEY (id_papeleta);
+
+
+--
+-- TOC entry 2067 (class 2606 OID 16466)
+-- Name: pk_rutas; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY rutas
+    ADD CONSTRAINT pk_rutas PRIMARY KEY (id_ruta);
+
+
+--
+-- TOC entry 2069 (class 2606 OID 16468)
+-- Name: pk_tipo_empresa; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY tipo_empresas
+    ADD CONSTRAINT pk_tipo_empresa PRIMARY KEY (id_tipo_empresa);
+
+
+--
+-- TOC entry 2071 (class 2606 OID 16470)
+-- Name: pk_tipo_vehiculos; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY tipo_vehiculos
+    ADD CONSTRAINT pk_tipo_vehiculos PRIMARY KEY (id_tipo_vehiculo);
+
+
+--
+-- TOC entry 2055 (class 2606 OID 16472)
+-- Name: pk_usuarios; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY usuarios
+    ADD CONSTRAINT pk_usuarios PRIMARY KEY (id_usuario);
+
+
+--
+-- TOC entry 2073 (class 2606 OID 16474)
+-- Name: pk_vehiculos; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY vehiculos
+    ADD CONSTRAINT pk_vehiculos PRIMARY KEY (id_vehiculo);
+
+
+--
+-- TOC entry 2059 (class 2606 OID 16476)
+-- Name: uk_choferes; Type: CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY choferes
+    ADD CONSTRAINT uk_choferes UNIQUE (dni, telefono, email);
+
+
+--
+-- TOC entry 2076 (class 2606 OID 16482)
+-- Name: fk_choferes_empresas; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY choferes
+    ADD CONSTRAINT fk_choferes_empresas FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa);
+
+
+--
+-- TOC entry 2077 (class 2606 OID 16531)
+-- Name: fk_choferes_licencias; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY choferes
+    ADD CONSTRAINT fk_choferes_licencias FOREIGN KEY (id_licencia) REFERENCES licencias(id_licencia) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2078 (class 2606 OID 16487)
+-- Name: fk_empresas_tipo_empresas; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY empresas
+    ADD CONSTRAINT fk_empresas_tipo_empresas FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresas(id_tipo_empresa);
+
+
+--
+-- TOC entry 2079 (class 2606 OID 16492)
+-- Name: fk_flotas_choferes; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY flotas
+    ADD CONSTRAINT fk_flotas_choferes FOREIGN KEY (id_chofer) REFERENCES choferes(id_chofer);
+
+
+--
+-- TOC entry 2080 (class 2606 OID 16497)
+-- Name: fk_flotas_rutas; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY flotas
+    ADD CONSTRAINT fk_flotas_rutas FOREIGN KEY (id_ruta) REFERENCES rutas(id_ruta);
+
+
+--
+-- TOC entry 2081 (class 2606 OID 16502)
+-- Name: fk_flotas_vehiculos; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY flotas
+    ADD CONSTRAINT fk_flotas_vehiculos FOREIGN KEY (id_vehiculo) REFERENCES vehiculos(id_vehiculo);
+
+
+--
+-- TOC entry 2082 (class 2606 OID 16507)
+-- Name: fk_papeletas_chofers; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY papeletas
+    ADD CONSTRAINT fk_papeletas_chofers FOREIGN KEY (id_chofer) REFERENCES choferes(id_chofer);
+
+
+--
+-- TOC entry 2083 (class 2606 OID 16512)
+-- Name: fk_vehiculos_empresas; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY vehiculos
+    ADD CONSTRAINT fk_vehiculos_empresas FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa);
+
+
+--
+-- TOC entry 2084 (class 2606 OID 16517)
+-- Name: fk_vehiculos_tipo_vehiculos; Type: FK CONSTRAINT; Schema: public; Owner: miruta
+--
+
+ALTER TABLE ONLY vehiculos
+    ADD CONSTRAINT fk_vehiculos_tipo_vehiculos FOREIGN KEY (id_tipo_vehiculo) REFERENCES tipo_vehiculos(id_tipo_vehiculo);
+
+
+--
+-- TOC entry 2225 (class 0 OID 0)
+-- Dependencies: 6
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2017-12-08 03:10:08 UTC
+
+--
+-- PostgreSQL database dump complete
+--
+
